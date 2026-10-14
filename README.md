@@ -38,8 +38,6 @@ Through an ultra-low-latency shared-memory pipeline, Win32 input synchronization
   - The native 2D mobile joysticks, HUD, and Shelly 3D model are cleanly hidden via memory patches.
 - **Authoritative Combat & Knockback**:
   - **Diamond Sword**: Fast sweeping melee attacks against enemy brawlers.
-  - **Mace + Wind Burst**: Rocket-jump with Wind Charges ~22 blocks into the air, then smash down on enemy brawlers for thousands of critical fall-scaled damage!
-  - **Wind Charges**: True rocket-jumping with hang-time and horizontal air-strafing.
   - **Ranged Weapons**: Bows, Crossbows with fireworks, and Tridents damage enemies on direct hits.
 - **Environment Destruction**:
   - Detonating TNT, End Crystals, or Respawn Anchors calls `LogicTileMap::destroyEnvironment` directly in the battle engine, clearing obstacles and opening sightlines.
