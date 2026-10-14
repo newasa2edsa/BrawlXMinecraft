@@ -20,15 +20,8 @@ We welcome all pull requests, bug fixes, performance optimizations, and feature 
 ---
 
 ## Roadmap & Areas Where Help Is Needed
-
-1. **Player & Mob Animations**:
-   - Currently, proxy brawlers use invisible/model entities in Minecraft. Adding animated 3D Minecraft models or textured overlays for brawler abilities would be awesome.
-2. **Additional Weapon Conversions**:
+1. **Additional Weapon Conversions**:
    - Enhancing weapons like the Crossbow, Potions, and Splash effects to trigger unique Brawl Stars status effects (e.g. poison, slow, burn).
-3. **Sound Effects**:
-   - Triggering Minecraft sound effects locally when Brawl Stars brawlers take damage or shoot.
-4. **Linux / Proton Support**:
-   - Porting the Win32 input hooks and raw mouse input to Linux X11/Wayland so Steam Deck and Linux users can run the passthrough with Waydroid.
 
 ---
 
