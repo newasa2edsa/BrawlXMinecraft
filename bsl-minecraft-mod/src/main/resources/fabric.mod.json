@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "passthrough",
+	"version": "${version}",
+	"name": "BSL v68 x Minecraft Passthrough",
+	"description": "Runs Minecraft 26.3 alongside Brawl Stars (BSL v68 in MuMu Player): BSL's camera and Steve character drive Minecraft, Minecraft's 3D Steve model, blocks, TNT, and hotbar are exported via Local\\MCPassthroughFrame and composited over BSL, and events cross over both ways.",
+	"authors": [
+		"rehan",
+		"universal-modder"
+	],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.rehan.passthrough.Passthrough"
+		],
+		"client": [
+			"dev.rehan.passthrough.client.PassthroughClient"
+		]
+	},
+	"mixins": [
+		"passthrough.mixins.json",
+		{
+			"config": "passthrough.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

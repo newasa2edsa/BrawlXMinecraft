@@ -1,0 +1,25 @@
+{
+  "Server": {
+    "ServerName": "CustomBrawlServer v68",
+    "BindAddress": "0.0.0.0",
+    "Port": 9339,
+    "Environment": "dev",
+    "DebugLogging": true,
+    "EnableBridge": true,
+    "BridgeBindAddress": "127.0.0.1",
+    "BridgePort": 8080,
+    "SimulateOfflineBattles": false
+  },
+  "Gameplay": {
+    "StartingGems": 999999,
+    "StartingGold": 999999,
+    "StartingStarPoints": 50000,
+    "StartingTrophies": 1337,
+    "StartingLevel": 50,
+    "UnlockAllBrawlers": true,
+    "DefaultBrawlerLevel": 11,
+    "SelectedBrawlerId": 0,
+    "UnlockAllCards": false,
+    "MaxCardId": 1321
+  }
+}

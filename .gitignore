@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Gradle & Java
+.gradle/
+build/
+!bsl-minecraft-mod/build/libs/passthrough-0.1.0.jar
+out/
+*.class
+
+# IDEs & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# .NET
+obj/
+bin/
+!CustomBrawlServer/bin/Debug/net10.0/*
+
+# APKs and huge dumps
+*.apk
+*.log
+*.bin
