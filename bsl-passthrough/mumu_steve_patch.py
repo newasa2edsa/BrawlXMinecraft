@@ -34,7 +34,7 @@ ADB_CANDIDATES = [
 MUMU_PORTS = ["127.0.0.1:16448", "127.0.0.1:7555", "127.0.0.1:16384", "127.0.0.1:16416", "127.0.0.1:5559"]
 APK_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "com.bsl.v68-rev2.apk"))
 PKG = "com.bsl.v68"
-PATCH_STAMP = "fp_steve_v18"
+PATCH_STAMP = "fp_steve_v19"
 
 # Verified ARM64 patches in lib/arm64-v8a/libg.so (PT_LOAD 0: file_offset == vaddr)
 LIBG_ARM64_PATCHES: list[tuple[int, str, str]] = [
@@ -156,6 +156,13 @@ LIBG_ARM64_PATCHES: list[tuple[int, str, str]] = [
     (0x55BFEC, "e103152a", "095440b9"),  # ldr w9, [x0, #0x54]
     (0x55BFF0, "8d760c94", "253f1914"),  # b #0xbabc84 (continue)
     (0x55BFF4, "e0a340f9", "1e3f1914"),  # b #0xbabc6c (skip to next item)
+    # 10. StatusEffectData Null Guard in 0xba5c7c (fixes tombstone_31 crash at 0xba5d30 [x8, #0x98] when entering battle!):
+    #     When StatusEffectData is not found in CSV logic (x22 == NULL), 0xba5cd0 branches to 0xba5d68 to log the warning.
+    #     After logging at 0xba5d88, call 0xba5bfc to reset the element to safe inactive defaults and return cleanly via 0xba5ee4!
+    (0xBA5D8C, "e00314aa", "e00313aa"),  # mov x0, x19
+    (0xBA5D90, "413e8052", "9bffff97"),  # bl #0xba5bfc (reset status effect to safe inactive defaults)
+    (0xBA5D94, "e64f0394", "54000014"),  # b #0xba5ee4 (clean return through epilogue, never dereference NULL!)
+    (0xBA5D98, "a0fa0737", "1f2003d5"),  # nop
 ]
 
 
@@ -248,12 +255,12 @@ def build_patched_libg(source_bytes: bytes) -> bytes:
     for offset, orig_hex, patch_hex in LIBG_ARM64_PATCHES:
         orig_bytes = bytes.fromhex(orig_hex)
         patch_bytes = bytes.fromhex(patch_hex)
-        actual = bytes(data[offset : offset + 4])
+        actual = bytes(data[offset : offset + len(orig_bytes)])
         if actual != orig_bytes and actual != patch_bytes:
             raise ValueError(
                 f"libg.so mismatch at 0x{offset:06x}: expected {orig_hex}, got {actual.hex()}"
             )
-        data[offset : offset + 4] = patch_bytes
+        data[offset : offset + len(patch_bytes)] = patch_bytes
     return bytes(data)
 
 
