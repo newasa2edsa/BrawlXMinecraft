@@ -13,6 +13,14 @@
   <img src="https://img.shields.io/badge/License-MIT-F89820?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="MIT License" />
 </p>
 
+<p align="center">
+  <img src="pic.png" alt="BrawlXMinecraft Screenshot 1" width="100%" />
+</p>
+
+<p align="center">
+  <img src="pic2.png" alt="BrawlXMinecraft Screenshot 2" width="100%" />
+</p>
+
 ---
 
 ## Overview
