@@ -312,6 +312,22 @@ def extract_from_emulator(adb: str, serial: str) -> tuple[bytes | None, bytes | 
         return libg_data, texts_data
 
 
+def ensure_port_redirects(adb: str, serial: str):
+    """Ensure port 9339 & 8080 are routed to host, libBSL.c.so redirects to 127.0.0.1, and iptables catches all destination IPs."""
+    run_adb(adb, ["reverse", "tcp:9339", "tcp:9339"], serial)
+    run_adb(adb, ["reverse", "tcp:8080", "tcp:8080"], serial)
+    redirect_cmd = (
+        f"iptables -t nat -D OUTPUT -p tcp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 2>/dev/null || true; "
+        f"iptables -t nat -A OUTPUT -p tcp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 || true; "
+        f"iptables -t nat -D OUTPUT -p udp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 2>/dev/null || true; "
+        f"iptables -t nat -A OUTPUT -p udp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 || true; "
+        f"CFG=$(pm path {PKG} | head -n1 | sed 's/^package://;s|/base\\.apk$|/lib/arm64/libBSL.c.so|'); "
+        f"if [ -z \"$CFG\" ] || [ ! -f \"$CFG\" ]; then CFG=$(find /data/app -name libBSL.c.so 2>/dev/null | grep {PKG} | head -n1); fi; "
+        f"if [ -n \"$CFG\" ] && [ -f \"$CFG\" ]; then echo '{{\"interaction\":{{\"type\":\"script\",\"path\":\"libBSL.68250_64.so\",\"parameters\":{{\"redirectHost\":\"127.0.0.1\",\"redirectPort\":9339,\"offlineBattles\":true}}}}}}' > \"$CFG\"; chmod 755 \"$CFG\"; fi"
+    )
+    run_as_root(adb, serial, redirect_cmd)
+
+
 def apply_mumu_patch(remove: bool = False, launch_app: bool = True) -> bool:
     adb = find_adb()
     if not adb:
@@ -323,8 +339,7 @@ def apply_mumu_patch(remove: bool = False, launch_app: bool = True) -> bool:
         return False
 
     print(f"[MuMuPatch] Connected to MuMu device: {serial}")
-    run_adb(adb, ["reverse", "tcp:9339", "tcp:9339"], serial)
-    run_adb(adb, ["reverse", "tcp:8080", "tcp:8080"], serial)
+    ensure_port_redirects(adb, serial)
 
     if remove:
         restore_cmd = (
@@ -344,8 +359,7 @@ def apply_mumu_patch(remove: bool = False, launch_app: bool = True) -> bool:
         serial,
         f"[ -f /data/data/{PKG}/{PATCH_STAMP} ] && [ ! -d /data/data/{PKG}/update/csv_logic ] && echo PATCH_OK",
     )
-    run_adb(adb, ["reverse", "tcp:9339", "tcp:9339"], serial)
-    run_adb(adb, ["reverse", "tcp:8080", "tcp:8080"], serial)
+    ensure_port_redirects(adb, serial)
     if "PATCH_OK" in chk.stdout:
         print(f"[MuMuPatch] First-Person POV & Steve patch ({PATCH_STAMP}) already installed on MuMu Player!")
         return True

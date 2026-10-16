@@ -165,8 +165,12 @@ def ensure_brawl_server_running() -> subprocess.Popen | None:
     ensure_server_config_and_steve_profiles(server_dir)
     stop_existing_brawl_server()
 
-    exe_path = os.path.join(server_dir, "bin", "Debug", "net10.0", "CustomBrawlServer.exe")
-    cmd = [exe_path] if os.path.exists(exe_path) else ["dotnet", "run", "--project", server_dir]
+    exe_candidates = [
+        os.path.join(server_dir, "bin", "Release", "net10.0", "CustomBrawlServer.exe"),
+        os.path.join(server_dir, "bin", "Debug", "net10.0", "CustomBrawlServer.exe"),
+    ]
+    exe_path = next((p for p in exe_candidates if os.path.exists(p)), None)
+    cmd = [exe_path] if exe_path else ["dotnet", "run", "--project", server_dir]
     print(f"[Setup] Starting CustomBrawlServer ({' '.join(cmd)})...")
     proc = subprocess.Popen(
         cmd,
@@ -180,11 +184,24 @@ def ensure_brawl_server_running() -> subprocess.Popen | None:
             break
         time.sleep(0.2)
 
-    # Set up adb reverse and launch com.bsl.v68 AFTER CustomBrawlServer is online
+    # Set up adb reverse, iptables redirect, and launch com.bsl.v68 AFTER CustomBrawlServer is online
     if adb and serial:
         try:
             run_adb(adb, ["reverse", "tcp:9339", "tcp:9339"], serial, timeout=5)
             run_adb(adb, ["reverse", "tcp:8080", "tcp:8080"], serial, timeout=5)
+            # Route 192.168.0.2:9339 (and any other IP on port 9339) straight to 127.0.0.1:9339 inside Android!
+            from mumu_steve_patch import run_as_root
+            run_as_root(
+                adb,
+                serial,
+                "iptables -t nat -D OUTPUT -p tcp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 2>/dev/null || true; "
+                "iptables -t nat -A OUTPUT -p tcp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 || true; "
+                "iptables -t nat -D OUTPUT -p udp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 2>/dev/null || true; "
+                "iptables -t nat -A OUTPUT -p udp --dport 9339 -j DNAT --to-destination 127.0.0.1:9339 || true; "
+                "CFG=$(pm path com.bsl.v68 | head -n1 | sed 's/^package://;s|/base\\.apk$|/lib/arm64/libBSL.c.so|'); "
+                "if [ -z \"$CFG\" ] || [ ! -f \"$CFG\" ]; then CFG=$(find /data/app -name libBSL.c.so 2>/dev/null | grep com.bsl.v68 | head -n1); fi; "
+                "if [ -n \"$CFG\" ] && [ -f \"$CFG\" ]; then echo '{\"interaction\":{\"type\":\"script\",\"path\":\"libBSL.68250_64.so\",\"parameters\":{\"redirectHost\":\"127.0.0.1\",\"redirectPort\":9339,\"offlineBattles\":true}}}' > \"$CFG\"; chmod 755 \"$CFG\"; fi",
+            )
             run_adb(
                 adb,
                 ["shell", "monkey -p com.bsl.v68 -c android.intent.category.LAUNCHER 1"],
